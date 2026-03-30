@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Power Simulator RPG 3D</title>
+
+<style>
+body { margin:0; overflow:hidden; }
+canvas { display:block; }
+
+/* MOBILE */
+#controls {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+}
+#controls button {
+  width:60px; height:60px;
+  margin:5px;
+  font-size:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="controls">
+  <button ontouchstart="press('w')" ontouchend="release('w')">⬆️</button><br>
+  <button ontouchstart="press('a')" ontouchend="release('a')">⬅️</button>
+  <button ontouchstart="press('s')" ontouchend="release('s')">⬇️</button>
+  <button ontouchstart="press('d')" ontouchend="release('d')">➡️</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<script>
+
+const scene = new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
+
+const renderer = new THREE.WebGLRenderer()
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+// LIGHT
+const light = new THREE.DirectionalLight(0xffffff,1)
+light.position.set(5,10,5)
+scene.add(light)
+
+// FLOOR
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(50,50),
+  new THREE.MeshStandardMaterial({color:0x222222})
+)
+floor.rotation.x = -Math.PI/2
+scene.add(floor)
+
+// PLAYER
+const player = new THREE.Mesh(
+  new THREE.BoxGeometry(1,1,1),
+  new THREE.MeshStandardMaterial({color:0x00ff00})
+)
+scene.add(player)
+
+// ENEMY
+const enemy = new THREE.Mesh(
+  new THREE.BoxGeometry(1,1,1),
+  new THREE.MeshStandardMaterial({color:0xff0000})
+)
+enemy.position.set(5,0.5,5)
+scene.add(enemy)
+
+// CAMERA
+camera.position.set(0,5,10)
+
+// CONTROLS
+let keys = {}
+let mobile = {}
+
+document.addEventListener("keydown", e=>keys[e.key]=true)
+document.addEventListener("keyup", e=>keys[e.key]=false)
+
+function press(k){ mobile[k]=true }
+function release(k){ mobile[k]=false }
+
+// LOOP
+function animate(){
+  requestAnimationFrame(animate)
+
+  let speed = 0.1
+
+  if(keys["w"]||mobile["w"]) player.position.z -= speed
+  if(keys["s"]||mobile["s"]) player.position.z += speed
+  if(keys["a"]||mobile["a"]) player.position.x -= speed
+  if(keys["d"]||mobile["d"]) player.position.x += speed
+
+  // ENEMY FOLLOW
+  enemy.position.x += (player.position.x - enemy.position.x)*0.02
+  enemy.position.z += (player.position.z - enemy.position.z)*0.02
+
+  // CAMERA FOLLOW
+  camera.position.x = player.position.x
+  camera.position.z = player.position.z + 8
+  camera.lookAt(player.position)
+
+  renderer.render(scene, camera)
+}
+
+animate()
+
+</script>
+
+</body>
+</html>
